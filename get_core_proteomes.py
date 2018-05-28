@@ -83,7 +83,7 @@ def pipeline(inhandle):
 					seq = ">" + d + "\n" + str(record.seq) + "\n"
 					proteome_core.write(seq)
 	run_CVTree(proteomes)
-
+	differential_genes()
 
 # Run "CV" and "TREE" scripts
 def run_CVTree(str_n):
@@ -118,6 +118,41 @@ def run_CVTree(str_n):
 		print "\tGenerating tree using kmer length: ", i, ""
 		subprocess.call(["tree", "-o", out_tree, "-I", out_cvtree, "-i", inList, "-s", tag, "-E", str_n, "-d", out_dist])
 
+		
+		
+		
+# detect genes present in the 
+def differential_genes():
+
+	groups = {}
+	lists = []
+	input_parse = []
+	L = sys.argv[2]
+
+	for line in open(L, "r"):
+		group = line.strip().split("\t")[1]
+		genome = line.strip().split("\t")[0]
+		if group not in groups:
+			groups[group] = [genome]
+			lists.append(group)
+		else:
+			groups[group].append(genome)
+
+	for g in lists:
+		G = "list_" + g + ".txt"
+		input_parse.append(G)
+		list = open(G, "w")
+	
+		if g in groups.iterkeys():
+			if g == "P":
+				list.write('\n'.join(groups[g]))
+			elif g == "C":
+				list.write('\n'.join(groups[g]))
+
+	subprocess.call(["parse_pangenome_matrix.pl", "-m", "some_gbf_homologues_compared/pangenome_matrix_t0.tab", "-A", "list_P.txt", "-B", "list_C.txt", "-g"])
+		
+		
+		
 # define the mode of pipeline, if it will run over a file or in a directory
 def mode(inhandle):	
 	if os.path.isdir(inhandle):
@@ -137,9 +172,11 @@ def argsCheck():
 
 #############  CODE  #############
 if __name__ == '__main__':
-	if len(sys.argv) == 2: # script.py [directory] [list_of_groups]
+	if len(sys.argv) == 3: # script.py [directory] [list_of_groups]
 		mode(sys.argv[1])
+		
 		#print len(sys.argv)
 
-	elif len(sys.argv) != 2:
+	elif len(sys.argv) != 3:
+		print len(sys.argv)
 		argsCheck()
